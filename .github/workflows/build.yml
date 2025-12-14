@@ -1,15 +1,29 @@
 
 - name: Build APK with Buildozer
   run: |
-    # حذف پوشه‌های قدیمی
+    # ۱. حذف پوشه‌های قدیمی برای شروع تمیز
     rm -rf .buildozer 2>/dev/null || true
     
-    # ساخت APK با استفاده از yes برای قبول خودکار تمام لایسنس‌ها و پرسش‌ها
-    # 'yes |' قبل از دستور buildozer قرار می‌گیرد
-    yes | buildozer android debug
+    # ۲. دانلود مستقیم SDK Command Line Tools جدید و نصب آن
+    # این نسخه از sdkmanager مدرن‌تر است و از --licenses پشتیبانی می‌کند
+    echo "📥 دانلود SDK Command Line Tools جدید..."
+    cd ~/.buildozer/android/platform
+    wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+    unzip -q commandlinetools-linux-9477386_latest.zip -d cmdline-tools
+    mv cmdline-tools/cmdline-tools cmdline-tools/latest
+    rm commandlinetools-linux-9477386_latest.zip
     
-    # اگر خطا داشت، دوباره امتحان کن (بدون yes)
+    # ۳. تنظیم مسیر و قبول تمام لایسنس‌ها به صورت غیرتعاملی
+    export ANDROID_SDK_ROOT=~/.buildozer/android/platform/android-sdk
+    ~/.buildozer/android/platform/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses --verbose <<< "y"*10
+    
+    # ۴. بازگشت به دایرکتوری پروژه و ساخت APK
+    cd /home/runner/work/Breathing_app_1/Breathing_app_1
+    echo "🚀 شروع ساخت APK..."
+    buildozer android debug
+    
+    # ۵. اگر خطا داشت، یک بار دیگر تلاش کن
     if [ $? -ne 0 ]; then
-      echo "ساخت اول شکست خورد، در حال تلاش مجدد..."
+      echo "⚠️  ساخت اول شکست خورد، تلاش مجدد..."
       buildozer android debug
     fi
