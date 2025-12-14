@@ -47,13 +47,14 @@ jobs:
         pip install python-for-android
 
     - name: Generate Android SDK license
-  run: |
-    mkdir -p ~/.android/licenses
-    # ایجاد فایل لایسنس با تمام هش‌های مورد نیاز
-    echo -e "8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6dfcb131a6481e\n24333f8a63b6825ea9c5514f83c2829b004d1fee\n84831b9409646a918e30573bab4c9c91346d8abd\n601085b94cd77f0b54ff86406957099ebe79c4d6" > ~/.android/licenses/android-sdk-license
-    # تأیید ایجاد فایل
-    echo "✅ لایسنس های SDK ایجاد شدند:"
-    cat ~/.android/licenses/android-sdk-license
+      run: |
+        mkdir -p ~/.android/licenses
+        # ایجاد فایل لایسنس با تمام هش‌های مورد نیاز
+        echo -e "8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6dfcb131a6481e\n24333f8a63b6825ea9c5514f83c2829b004d1fee\n84831b9409646a918e30573bab4c9c91346d8abd\n601085b94cd77f0b54ff86406957099ebe79c4d6" > ~/.android/licenses/android-sdk-license
+        # تأیید ایجاد فایل
+        echo "✅ لایسنس های SDK ایجاد شدند:"
+        cat ~/.android/licenses/android-sdk-license
+
     - name: Build APK with Buildozer
       run: |
         # حذف پوشه‌های قدیمی
@@ -64,7 +65,7 @@ jobs:
         
         # اگر خطا داشت، دوباره امتحان کن
         if [ $? -ne 0 ]; then
-          echo "First build failed, retrying..."
+          echo "اولین ساخت شکست خورد، در حال تلاش مجدد..."
           buildozer android debug
         fi
 
@@ -79,13 +80,13 @@ jobs:
     - name: Show build results
       if: always()
       run: |
-        echo "=== Build Status ==="
-        echo "Job status: ${{ job.status }}"
+        echo "=== وضعیت ساخت ==="
+        echo "وضعیت Job: ${{ job.status }}"
         
-        echo "=== APK Files Found ==="
+        echo "=== فایل‌های APK پیدا شده ==="
         find . -name "*.apk" -type f 2>/dev/null | while read file; do
           echo "✓ $(basename "$file") - $(ls -lh "$file" | awk '{print $5}')"
-        done || echo "No APK files found"
+        done || echo "هیچ فایل APK پیدا نشد"
         
-        echo "=== Directory Structure ==="
-        ls -la bin/ 2>/dev/null || echo "bin directory not found"
+        echo "=== ساختار پوشه ==="
+        ls -la bin/ 2>/dev/null || echo "پوشه bin پیدا نشد"
