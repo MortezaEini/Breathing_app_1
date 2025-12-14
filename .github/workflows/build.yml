@@ -2,7 +2,56 @@
 - name: Build APK with Buildozer
   run: |
     # 1. حذف پوشه‌های قدیمی
-    rm -rf .buildozer 2>/dev/null || true
+    rm -rf .name: Build Android APK
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install basic dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          python3-pip python3-venv git wget zip unzip \
+          openjdk-17-jdk
+
+    - name: Install Buildozer
+      run: |
+        pip install buildozer cython==0.29.33
+
+    - name: Setup Android licenses
+      run: |
+        mkdir -p ~/.android/licenses
+        echo -e "8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6dfcb131a6481e" > ~/.android/licenses/android-sdk-license
+
+    - name: Build APK
+      run: |
+        # Clean previous builds
+        rm -rf .buildozer bin 2>/dev/null || true
+        
+        # Let Buildozer handle everything
+        buildozer android debug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-apk
+        path: bin/*.apk
+        retention-days: 7 2>/dev/null || true
     
     # 2. ساخت اولیه برای دانلود ابزارها (بدون انتظار لایسنس)
     echo "🔧 مرحله اول: دانلود اولیه ابزارها..."
