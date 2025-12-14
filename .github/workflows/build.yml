@@ -20,27 +20,30 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Install dependencies
+    - name: Install ALL dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y \
           python3-pip python3-venv git wget zip unzip \
-          openjdk-17-jdk
+          openjdk-17-jdk build-essential \
+          cython3 python3-cython  # نصب Cython از طریق apt
 
-    - name: Install Buildozer
-      run: pip install buildozer
+    - name: Install Buildozer and verify
+      run: |
+        pip install --upgrade pip
+        pip install buildozer
+        # بررسی نصب Cython
+        python -c "import cython; print('Cython version:', cython.__version__)"
+        buildozer --version
 
     - name: Setup Android licenses
       run: |
         mkdir -p ~/.android/licenses
-        echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > ~/.android/licenses/android-sdk-license
+        echo -e "8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6dfcb131a6481e" > ~/.android/licenses/android-sdk-license
 
     - name: Build APK
       run: |
-        # Clean any previous builds
         rm -rf .buildozer 2>/dev/null || true
-        
-        # Build the APK
         buildozer android debug
 
     - name: Upload APK
