@@ -1,29 +1,26 @@
 
 - name: Build APK with Buildozer
   run: |
-    # ۱. حذف پوشه‌های قدیمی برای شروع تمیز
+    # 1. حذف پوشه‌های قدیمی
     rm -rf .buildozer 2>/dev/null || true
     
-    # ۲. دانلود مستقیم SDK Command Line Tools جدید و نصب آن
-    # این نسخه از sdkmanager مدرن‌تر است و از --licenses پشتیبانی می‌کند
-    echo "📥 دانلود SDK Command Line Tools جدید..."
-    cd ~/.buildozer/android/platform
-    wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-    unzip -q commandlinetools-linux-9477386_latest.zip -d cmdline-tools
-    mv cmdline-tools/cmdline-tools cmdline-tools/latest
-    rm commandlinetools-linux-9477386_latest.zip
+    # 2. ساخت اولیه برای دانلود ابزارها (بدون انتظار لایسنس)
+    echo "🔧 مرحله اول: دانلود اولیه ابزارها..."
+    timeout 30 buildozer android debug 2>&1 | grep -v "License android" || true
     
-    # ۳. تنظیم مسیر و قبول تمام لایسنس‌ها به صورت غیرتعاملی
-    export ANDROID_SDK_ROOT=~/.buildozer/android/platform/android-sdk
-    ~/.buildozer/android/platform/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses --verbose <<< "y"*10
+    # 3. حالا که ابزارها دانلود شدند، لایسنس را تأیید می‌کنیم
+    echo "📝 تأیید لایسنس‌های اندروید..."
+    cd ~/.buildozer/android/platform/android-sdk
+    mkdir -p licenses
+    echo -e "8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6dfcb131a6481e\n24333f8a63b6825ea9c5514f83c2829b004d1fee\n84831b9409646a918e30573bab4c9c91346d8abd\n601085b94cd77f0b54ff86406957099ebe79c4d6" > licenses/android-sdk-license
     
-    # ۴. بازگشت به دایرکتوری پروژه و ساخت APK
+    # 4. بازگشت به دایرکتوری پروژه و ساخت نهایی
     cd /home/runner/work/Breathing_app_1/Breathing_app_1
-    echo "🚀 شروع ساخت APK..."
+    echo "🚀 شروع ساخت نهایی APK..."
     buildozer android debug
     
-    # ۵. اگر خطا داشت، یک بار دیگر تلاش کن
+    # 5. اگر خطا داشت، یک بار دیگر تلاش کن
     if [ $? -ne 0 ]; then
-      echo "⚠️  ساخت اول شکست خورد، تلاش مجدد..."
+      echo "⚠️ ساخت اول شکست خورد، تلاش مجدد..."
       buildozer android debug
     fi
