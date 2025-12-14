@@ -1,11 +1,9 @@
 
-- name: Build APK with Buildozer
-  run: |
-    # 1. حذف پوشه‌های قدیمی
-    rm -rf .name: Build Android APK
+name: Build Android APK
+
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -22,7 +20,7 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Install basic dependencies
+    - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y \
@@ -30,46 +28,24 @@ jobs:
           openjdk-17-jdk
 
     - name: Install Buildozer
-      run: |
-        pip install buildozer cython==0.29.33
+      run: pip install buildozer
 
     - name: Setup Android licenses
       run: |
         mkdir -p ~/.android/licenses
-        echo -e "8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6dfcb131a6481e" > ~/.android/licenses/android-sdk-license
+        echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > ~/.android/licenses/android-sdk-license
 
     - name: Build APK
       run: |
-        # Clean previous builds
-        rm -rf .buildozer bin 2>/dev/null || true
+        # Clean any previous builds
+        rm -rf .buildozer 2>/dev/null || true
         
-        # Let Buildozer handle everything
+        # Build the APK
         buildozer android debug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-apk
+        name: breathing-app-apk
         path: bin/*.apk
-        retention-days: 7 2>/dev/null || true
-    
-    # 2. ساخت اولیه برای دانلود ابزارها (بدون انتظار لایسنس)
-    echo "🔧 مرحله اول: دانلود اولیه ابزارها..."
-    timeout 30 buildozer android debug 2>&1 | grep -v "License android" || true
-    
-    # 3. حالا که ابزارها دانلود شدند، لایسنس را تأیید می‌کنیم
-    echo "📝 تأیید لایسنس‌های اندروید..."
-    cd ~/.buildozer/android/platform/android-sdk
-    mkdir -p licenses
-    echo -e "8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6dfcb131a6481e\n24333f8a63b6825ea9c5514f83c2829b004d1fee\n84831b9409646a918e30573bab4c9c91346d8abd\n601085b94cd77f0b54ff86406957099ebe79c4d6" > licenses/android-sdk-license
-    
-    # 4. بازگشت به دایرکتوری پروژه و ساخت نهایی
-    cd /home/runner/work/Breathing_app_1/Breathing_app_1
-    echo "🚀 شروع ساخت نهایی APK..."
-    buildozer android debug
-    
-    # 5. اگر خطا داشت، یک بار دیگر تلاش کن
-    if [ $? -ne 0 ]; then
-      echo "⚠️ ساخت اول شکست خورد، تلاش مجدد..."
-      buildozer android debug
-    fi
+        retention-days: 7
