@@ -13,7 +13,8 @@ fullscreen = 0
 android.api = 33
 android.minapi = 21
 # حذف android.sdk (منسوخ شده)
-android.ndk = 25b  # NDK نسخه ۲۵ - پایدارترین نسخه
+android.ndk = 25b 
+# NDK نسخه ۲۵ - پایدارترین نسخه
 android.ndk_api = 21
 android.archs = arm64-v8a,armeabi-v7a  # استفاده از archs جدید
 android.permissions = INTERNET
